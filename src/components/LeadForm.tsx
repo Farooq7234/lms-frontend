@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -21,13 +21,21 @@ const leadSchema = z.object({
   is_qualified: z.coerce.boolean().optional().default(false),
 });
 
+export type LeadFormValues = z.infer<typeof leadSchema>;
+
+type LeadFormProps = {
+  defaultValues?: Partial<LeadFormValues>;
+  onSubmit: (values: LeadFormValues) => void | Promise<void>;
+  submitLabel?: string;
+};
+
 export default function LeadForm({
   defaultValues,
   onSubmit,
   submitLabel = "Save",
-}) {
-  const form = useForm({
-    resolver: zodResolver(leadSchema),
+}: LeadFormProps) {
+  const form = useForm<LeadFormValues>({
+    resolver: zodResolver(leadSchema) as any,
     defaultValues: {
       first_name: "",
       last_name: "",
@@ -41,9 +49,11 @@ export default function LeadForm({
       score: 0,
       lead_value: 0,
       is_qualified: false,
-      ...defaultValues,
+      ...(defaultValues as Partial<LeadFormValues>),
     },
   });
+
+  const submitHandler: SubmitHandler<LeadFormValues> = (data) => onSubmit(data);
 
   useEffect(() => {
     if (defaultValues) {
@@ -53,8 +63,8 @@ export default function LeadForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-        {[
+      <form onSubmit={form.handleSubmit(submitHandler)} className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
+        {([
           { name: "first_name", label: "First Name" },
           { name: "last_name", label: "Last Name" },
           { name: "email", label: "Email", type: "email" },
@@ -66,11 +76,11 @@ export default function LeadForm({
           { name: "status", label: "Status" },
           { name: "score", label: "Score", type: "number" },
           { name: "lead_value", label: "Lead Value", type: "number" },
-        ].map((field) => (
+        ] as Array<{ name: keyof LeadFormValues; label: string; type?: string }>).map((field) => (
           <FormField
             key={field.name}
             control={form.control}
-            name={field.name}
+            name={field.name as any}
             render={({ field: f }) => (
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
