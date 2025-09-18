@@ -64,7 +64,7 @@ export default function LeadsPage() {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/leads?page=${page}&limit=${limit}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/leads?page=${page}&limit=${limit}`, { withCredentials: true });
       console.log("Fetch leads response:", res);
       if (res.status !== 200) {
         throw new Error(`Error fetching leads: ${res.statusText}`);
