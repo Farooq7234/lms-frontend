@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import axios from "axios";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 type Lead = {
   _id: string;
@@ -56,6 +57,7 @@ type Lead = {
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -132,7 +134,7 @@ const columns: ColumnDef<Lead>[] = [
       };
 
       const handleEdit = () => {
-        window.location.href = `/leads/edit/${lead._id}`;
+        navigate (`/leads/edit/${lead._id}`);
       };
 
       return (
