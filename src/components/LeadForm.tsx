@@ -2,10 +2,37 @@ import { useEffect } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// 🔹 enums from backend schema
+const SOURCE_OPTIONS = [
+  "website",
+  "facebook_ads",
+  "google_ads",
+  "referral",
+  "events",
+  "other",
+] as const;
+
+const STATUS_OPTIONS = [
+  "new",
+  "contacted",
+  "qualified",
+  "lost",
+  "won",
+] as const;
+
+// 🔹 Zod schema with enum
 const leadSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
@@ -14,8 +41,8 @@ const leadSchema = z.object({
   company: z.string().min(1, "Company is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
-  source: z.string().min(1, "Source is required"),
-  status: z.string().min(1, "Status is required"),
+  source: z.enum(SOURCE_OPTIONS, { required_error: "Source is required" }),
+  status: z.enum(STATUS_OPTIONS, { required_error: "Status is required" }),
   score: z.coerce.number().min(0),
   lead_value: z.coerce.number().min(0),
   is_qualified: z.coerce.boolean().optional().default(false),
@@ -44,8 +71,8 @@ export default function LeadForm({
       company: "",
       city: "",
       state: "",
-      source: "",
-      status: "",
+      source: "website",
+      status: "new",
       score: 0,
       lead_value: 0,
       is_qualified: false,
@@ -63,20 +90,23 @@ export default function LeadForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submitHandler)} className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-        {([
-          { name: "first_name", label: "First Name" },
-          { name: "last_name", label: "Last Name" },
-          { name: "email", label: "Email", type: "email" },
-          { name: "phone", label: "Phone" },
-          { name: "company", label: "Company" },
-          { name: "city", label: "City" },
-          { name: "state", label: "State" },
-          { name: "source", label: "Source" },
-          { name: "status", label: "Status" },
-          { name: "score", label: "Score", type: "number" },
-          { name: "lead_value", label: "Lead Value", type: "number" },
-        ] as Array<{ name: keyof LeadFormValues; label: string; type?: string }>).map((field) => (
+      <form
+        onSubmit={form.handleSubmit(submitHandler)}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl"
+      >
+        {(
+          [
+            { name: "first_name", label: "First Name" },
+            { name: "last_name", label: "Last Name" },
+            { name: "email", label: "Email", type: "email" },
+            { name: "phone", label: "Phone" },
+            { name: "company", label: "Company" },
+            { name: "city", label: "City" },
+            { name: "state", label: "State" },
+            { name: "score", label: "Score", type: "number" },
+            { name: "lead_value", label: "Lead Value", type: "number" },
+          ] as Array<{ name: keyof LeadFormValues; label: string; type?: string }>
+        ).map((field) => (
           <FormField
             key={field.name}
             control={form.control}
@@ -93,12 +123,64 @@ export default function LeadForm({
           />
         ))}
 
+        {/* 🔹 Source dropdown */}
+        <FormField
+          control={form.control}
+          name="source"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Source</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select source" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {SOURCE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* 🔹 Status dropdown */}
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="md:col-span-2 mt-4">
-          <Button type="submit" className="w-full md:w-auto">{submitLabel}</Button>
+          <Button type="submit" className="w-full md:w-auto">
+            {submitLabel}
+          </Button>
         </div>
       </form>
     </Form>
   );
 }
-
-
