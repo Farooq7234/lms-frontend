@@ -10,7 +10,7 @@ import Landing from './pages/Landing'
 
 function App() {
   return (
-    <div className="p-6">
+    <div className="">
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signin" element={<SignIn />} />
