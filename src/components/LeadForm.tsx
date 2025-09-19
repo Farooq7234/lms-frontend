@@ -41,8 +41,12 @@ const leadSchema = z.object({
   company: z.string().min(1, "Company is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
-  source: z.enum(SOURCE_OPTIONS, { required_error: "Source is required" }),
-  status: z.enum(STATUS_OPTIONS, { required_error: "Status is required" }),
+  source: z.enum(SOURCE_OPTIONS).refine((val) => !!val, {
+    message: "Source is required",
+  }),
+  status: z.enum(STATUS_OPTIONS).refine((val) => !!val, {
+    message: "Status is required",
+  }),
   score: z.coerce.number().min(0),
   lead_value: z.coerce.number().min(0),
   is_qualified: z.coerce.boolean().optional().default(false),
