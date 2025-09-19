@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Users, BarChart3, Shield, Zap, CheckCircle, Database } from "lucide-react"
+import { Link } from "react-router-dom"
 
 function Home() {
   return (
@@ -25,7 +26,7 @@ function Home() {
             </a>
           </nav>
           <Button variant="outline" className="border-black text-black hover:bg-black hover:text-white bg-transparent">
-            Get Started
+           <Link to={'/signin'}>Login</Link>
           </Button>
         </div>
       </header>

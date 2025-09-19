@@ -22,7 +22,7 @@ export default function Header() {
         </Link>
         <nav className="flex items-center gap-4">
           <Link to="/leads" className={`text-sm bg-primary text-primary-foreground px-4 py-2 rounded-md ${isActive("/leads")}`}>Leads</Link>
-          <Link to="/leads/new" className={`text-sm bg-green-500 text-primary-foreground px-4 py-2 rounded-md ${isActive("/leads/new")}`}>Add Lead</Link>
+          {/* <Link to="/leads/new" className={`text-sm bg-green-500 text-primary-foreground px-4 py-2 rounded-md ${isActive("/leads/new")}`}>Add Lead</Link> */}
         </nav>
         <div className="flex items-center gap-2">
           <Button variant="destructive" onClick={handleLogout}>Logout</Button>

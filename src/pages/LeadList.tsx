@@ -33,7 +33,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import axios from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -57,17 +59,36 @@ type Lead = {
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+  // filter state
+  const [filters, setFilters] = useState({
+    city: "",
+    state: "",
+    status: "",
+    source: "",
+  });
+
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/leads?page=${page}&limit=${limit}`, { withCredentials: true });
-      console.log("Fetch leads response:", res);
+      const query = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(filters.city ? { city: filters.city } : {}),
+        ...(filters.state ? { state: filters.state } : {}),
+        ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.source ? { source: filters.source } : {}),
+      });
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/v1/leads?${query.toString()}`,
+        { withCredentials: true }
+      );
       if (res.status !== 200) {
         throw new Error(`Error fetching leads: ${res.statusText}`);
       }
@@ -85,99 +106,94 @@ export default function LeadsPage() {
     fetchLeads();
   }, [page]);
 
-const columns: ColumnDef<Lead>[] = [
-  { accessorKey: "first_name", header: "First Name" },
-  { accessorKey: "last_name", header: "Last Name" },
-  { accessorKey: "email", header: "Email" },
-  { accessorKey: "phone", header: "Phone" },
-  { accessorKey: "company", header: "Company" },
-  { accessorKey: "city", header: "City" },
-  { accessorKey: "state", header: "State" },
-  { accessorKey: "source", header: "Source" },
-  { accessorKey: "status", header: "Status" },
-  { accessorKey: "score", header: "Score" },
-  { accessorKey: "lead_value", header: "Lead Value" },
-  {
-    accessorKey: "is_qualified",
-    header: "Qualified",
-    cell: ({ row }) =>
-      row.original.is_qualified ? (
-        <span className="text-green-600 font-medium">Yes</span>
-      ) : (
-        <span className="text-red-600 font-medium">No</span>
-      ),
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const lead = row.original;
-
-      const handleDelete = async () => {
-        try {
-          await axios.delete(
-            `${import.meta.env.VITE_API_URL}/api/v1/leads/${lead._id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-          toast.success("Lead deleted successfully");
-       setTimeout(() => {
-         window.location.reload();
-       }, 2000);
-        } catch (err) {
-          console.error("Error deleting lead:", err);
-          toast.error("Failed to delete lead");
-        }
-      };
-
-      const handleEdit = () => {
-        navigate (`/leads/edit/${lead._id}`);
-      };
-
-      return (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleEdit}
-          >
-            Edit
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="destructive">Delete</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Are you sure you want to delete this lead?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. The lead will be permanently
-                  removed from the system.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-red-600 hover:bg-red-700"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      );
+  const columns: ColumnDef<Lead>[] = [
+    { accessorKey: "first_name", header: "First Name" },
+    { accessorKey: "last_name", header: "Last Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "phone", header: "Phone" },
+    { accessorKey: "company", header: "Company" },
+    { accessorKey: "city", header: "City" },
+    { accessorKey: "state", header: "State" },
+    { accessorKey: "source", header: "Source" },
+    { accessorKey: "status", header: "Status" },
+    { accessorKey: "score", header: "Score" },
+    { accessorKey: "lead_value", header: "Lead Value" },
+    {
+      accessorKey: "is_qualified",
+      header: "Qualified",
+      cell: ({ row }) =>
+        row.original.is_qualified ? (
+          <span className="text-green-600 font-medium">Yes</span>
+        ) : (
+          <span className="text-red-600 font-medium">No</span>
+        ),
     },
-  },
-];
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const lead = row.original;
 
+        const handleDelete = async () => {
+          try {
+            await axios.delete(
+              `${import.meta.env.VITE_API_URL}/api/v1/leads/${lead._id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+            toast.success("Lead deleted successfully");
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } catch (err) {
+            console.error("Error deleting lead:", err);
+            toast.error("Failed to delete lead");
+          }
+        };
+
+        const handleEdit = () => {
+          navigate(`/leads/edit/${lead._id}`);
+        };
+
+        return (
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleEdit}>
+              Edit
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="destructive">Delete</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Are you sure you want to delete this lead?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. The lead will be permanently
+                    removed from the system.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        );
+      },
+    },
+  ];
 
   const table = useReactTable({
     data: leads,
@@ -188,9 +204,60 @@ const columns: ColumnDef<Lead>[] = [
   return (
     <div className="container mx-auto p-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex justify-between items-center">
           <CardTitle className="text-xl font-bold">Leads</CardTitle>
+          <Button onClick={() => navigate("/leads/new")}>+ Add Lead</Button>
         </CardHeader>
+
+        {/* Filters */}
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Input
+              placeholder="Filter by City"
+              value={filters.city}
+              onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+            />
+            <Input
+              placeholder="Filter by State"
+              value={filters.state}
+              onChange={(e) => setFilters({ ...filters, state: e.target.value })}
+            />
+            <Select
+              onValueChange={(val) => setFilters({ ...filters, status: val })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="contacted">Contacted</SelectItem>
+                <SelectItem value="qualified">Qualified</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
+                <SelectItem value="won">Won</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              onValueChange={(val) => setFilters({ ...filters, source: val })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="website">Website</SelectItem>
+                <SelectItem value="facebook_ads">Facebook Ads</SelectItem>
+                <SelectItem value="google_ads">Google Ads</SelectItem>
+                <SelectItem value="referral">Referral</SelectItem>
+                <SelectItem value="events">Events</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button variant="outline" onClick={() => { setPage(1); fetchLeads(); }}>
+            Apply Filters
+          </Button>
+        </CardContent>
+
+        {/* Table */}
         <CardContent>
           {loading ? (
             <Skeleton className="w-full h-[400px]" />
