@@ -1,3 +1,4 @@
+"use client"
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -31,11 +32,7 @@ export default function LeadEdit() {
 
   const handleSubmit = async (values: LeadFormValues) => {
     try {
-      const res = await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/leads/${id}`, values, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const res = await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/leads/${id}`, values);
       toast.success("Lead updated successfully");
       navigate("/leads");
       console.log(res);
